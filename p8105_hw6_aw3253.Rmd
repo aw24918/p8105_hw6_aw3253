@@ -28,3 +28,37 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```
 
 
+# Problem 1
+
+Importing Data:
+
+```{r}
+birth =
+  read_csv(file = "./data/birthweight.csv") %>% 
+  drop_na()
+```
+
+
+Data Cleaning:
+
+```{r}
+birth_df =
+birth %>% 
+  mutate(babysex = factor(babysex,
+                          levels = c(1, 2),
+                          labels = c("Male", "Female"))) %>% 
+  mutate(frace = factor(frace,
+                        levels = c(1, 2, 3, 4, 8, 9),
+                        labels = c("White", "Black", "Asian", "Puerto Rican", "Other", "Unknown"))) %>% 
+  mutate(malform = factor(malform,
+                          levels = c(0, 1),
+                          labels = c("Absent", "Present"))) %>% 
+  mutate(mrace = factor(mrace,
+                        levels = c(1, 2, 3, 4, 8),
+                        labels = c("White", "Black", "Asian", "Puerto Rican", "Other")))
+
+birth_df
+```
+
+
+Proposed Model for Birthweight:
