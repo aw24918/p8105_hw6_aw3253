@@ -7,6 +7,7 @@ output: github_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(modelr)
 library(p8105.datasets)
 library(viridis)
 
@@ -62,3 +63,33 @@ birth_df
 
 
 Proposed Model for Birthweight:
+
+```{r}
+fit= lm(bwt ~ gaweeks+ smoken + delwt + pnumlbw + wtgain + momage, data = birth_df)
+fit %>% broom::tidy()
+fit %>% broom::glance()
+```
+
+Significant Predictors?
+
+
+Plotting Residuals:
+
+```{r}
+residual_plot =
+birth_df %>% 
+  add_predictions(fit) %>% 
+  add_residuals(fit) %>% 
+  ggplot(aes(x=pred, y=resid)) +
+  geom_point()  +
+  geom_smooth(method= "lm", se = FALSE) +
+  labs(x= "Predicted Birthweight(grams)", y="Residual",title = "Predictions of Proposed Model vs Residuals")
+
+residual_plot
+```
+
+The residuals are somewhat randomly scattered around 0, but there does seem to be a cluster indicating a pattern. Based on other assumptions, the model may still be appropriate. 
+
+
+Comparing Models:
+
