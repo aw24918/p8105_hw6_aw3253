@@ -93,3 +93,71 @@ The residuals are somewhat randomly scattered around 0, but there does seem to b
 
 Comparing Models:
 
+```{r}
+main = lm(bwt ~ blength + gaweeks, data=birth_df)
+
+interaction = lm(bwt ~ bhead + blength + babysex + bhead*blength + bhead*babysex + blength*babysex, data=birth_df)
+```
+
+
+##Problem 2
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+
+```{r}
+bootstrap_weather =
+  bootstrap(weather_df, 5000) 
+as_data_frame(bootstrap_weather$strap[[1]])
+```
+
+
+```{r}
+bootstrap_results=
+bootstrap_weather %>% 
+  mutate(
+    models = map(strap, ~lm(tmax ~ tmin, data=.x)),
+    results = map(models, broom::tidy),
+    glance = map(models, broom::glance)) %>% 
+  select(-strap,-models) %>% 
+  unnest(glance,results) %>% 
+  group_by(.id)
+```
+
+```{r}
+bootstrap = 
+  bootstrap_results %>% 
+  select(.id, estimate, term, r.squared, adj.r.squared) %>% 
+  pivot_wider(names_from = term, values_from = estimate) %>% 
+  janitor::clean_names() %>% 
+  mutate(log_var = log(intercept * tmin)) 
+```
+
+
+```{r}
+r_squared_distribution = 
+  bootstrap %>% 
+  ggplot(aes(x = r_squared)) +
+  geom_density(alpha = 0.2) +  
+  labs(title = "Distribution of r2")
+r_squared_distribution
+```
+```{r}
+log_var_distribution =
+  bootstrap %>% 
+  ggplot(aes(x = log_var)) +
+  geom_density(alpha = 0.2) +
+  labs(title = "Distribution of log_var")
+log_var_distribution
+```
